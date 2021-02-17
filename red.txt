@@ -1,2 +1,4 @@
 yarn add
 npm i
+
+snipped - create commponnet rnfes
