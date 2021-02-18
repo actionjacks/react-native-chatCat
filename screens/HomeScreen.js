@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,21 @@ import { auth, db } from "../firebase";
 import CustomListItem from "../components/CustomListItem";
 
 const HomeScreen = ({ navigation }) => {
+  const [chats, setChats] = useState([]);
+  //get chat rooms
+  useEffect(() => {
+    const unsubscribe = db.collection("chats").onSnapshot((snapshot) => {
+      setChats(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          data: doc.data(),
+        }))
+      );
+    });
+    //clean
+    return unsubscribe;
+  }, []);
+
   const signOutUser = () => {
     auth.signOut().then(() => {
       navigation.replace("Login");
@@ -56,14 +71,34 @@ const HomeScreen = ({ navigation }) => {
     console.log(auth); // todo remove
   }, [navigation]);
 
+  const enterChat = (id, chatName) => {
+    navigation.navigate("Chat", {
+      id,
+      chatName,
+    });
+  };
+
   return (
     <SafeAreaView>
-      <ScrollView>
-        <CustomListItem />
+      <ScrollView style={styles.container}>
+        {/* get chats */}
+        {chats.map(({ id, data: { chatName } }) => (
+          <CustomListItem
+            key={id}
+            id={id}
+            chatName={chatName}
+            enterChat={enterChat}
+          />
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
-//1:18
+
+const styles = StyleSheet.create({
+  container: {
+    height: "100%",
+  },
+});
