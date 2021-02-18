@@ -8,7 +8,7 @@ import {
   StatusBar,
   Platform,
   KeyboardAvoidingView,
-  TouchableNativeFeedback,
+  TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
 import { Avatar } from "react-native-elements";
@@ -19,6 +19,7 @@ import * as firebase from "firebase";
 
 const ChatScreen = ({ navigation, route }) => {
   const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -82,7 +83,25 @@ const ChatScreen = ({ navigation, route }) => {
       email: auth.currentUser.email,
       photoURL: auth.currentUser.photoURL,
     });
+    setInput("");
   };
+
+  useLayoutEffect(() => {
+    const unsubscribe = db
+      .collection("chats")
+      .doc(route.params.id)
+      .collection("messages")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) =>
+        setMessages(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }))
+        )
+      );
+    return unsubscribe;
+  }, [route]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
@@ -92,7 +111,7 @@ const ChatScreen = ({ navigation, route }) => {
         style={styles.container}
         keyboardVerticalOffset={90}
       >
-        <TouchableNativeFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <>
             <ScrollView>{/* chats */}</ScrollView>
             <View style={styles.footer}>
@@ -101,13 +120,14 @@ const ChatScreen = ({ navigation, route }) => {
                 style={styles.textInput}
                 value={input}
                 onChangeText={(text) => setInput(text)}
+                onSubmitEditing={sendMessage}
               />
               <TouchableOpacity onPress={sendMessage} activeOpacity={0.5}>
                 <Ionicons name="send" size={24} color="#2B68E6" />
               </TouchableOpacity>
             </View>
           </>
-        </TouchableNativeFeedback>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       {/*  */}
       <Text>{route.params.chatName}</Text>
