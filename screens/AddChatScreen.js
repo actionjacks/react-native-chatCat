@@ -37,7 +37,11 @@ const AddChatScreen = ({ navigation }) => {
           <Icon name="wechat" type="antdesign" size={24} color="black" />
         }
       />
-      <Button onPress={createChat} title="Create new CatChat" />
+      <Button
+        disabled={!input}
+        onPress={createChat}
+        title="Create new CatChat"
+      />
     </View>
   );
 };
